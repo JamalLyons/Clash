@@ -84,7 +84,7 @@ test:
 		echo "Virtual environment not found. Please run 'make setup' first."; \
 		exit 1; \
 	fi
-	@source $(VENV_NAME)/bin/activate && python src/test.py
+	@source $(VENV_NAME)/bin/activate && python src/test_screen_config.py
 
 # Clean up virtual environment and cache files
 clean:

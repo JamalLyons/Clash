@@ -5,7 +5,6 @@ Provides a clean API for fetching player and clan information
 """
 
 import requests
-import json
 from typing import Dict, Optional, List
 from datetime import datetime
 

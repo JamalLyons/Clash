@@ -14,14 +14,16 @@ from typing import Dict, Tuple, Optional
 class GuiController:
     """Handles all GUI automation operations for Clash of Clans"""
     
-    def __init__(self, screen_positions: Dict[str, Tuple[int, int]]):
+    def __init__(self, screen_positions: Dict[str, Tuple[int, int]], player_positions: Dict[str, Tuple[int, int]] = None):
         """
         Initialize GUI controller with screen positions
         
         Args:
             screen_positions: Dictionary mapping element names to (x, y) coordinates
+            player_positions: Dictionary mapping player numbers to (x, y) coordinates
         """
         self.positions = screen_positions
+        self.player_positions = player_positions or {}
         self.keyboard = Controller()
         
         # Configure pyautogui
@@ -176,11 +178,11 @@ class GuiController:
         """
         try:
             position_name = str(player_num)
-            if position_name not in self.positions:
+            if position_name not in self.player_positions:
                 print(f"❌ Unknown player position: {player_num}")
                 return False
             
-            x, y = self.positions[position_name]
+            x, y = self.player_positions[position_name]
             pyautogui.click(x, y)
             time.sleep(1.5)
             return True
@@ -232,12 +234,18 @@ class GuiController:
         """Scroll to the next page of players"""
         try:
             # Move to last player position
-            x, y = self.positions['5']
+            if '5' not in self.player_positions:
+                print("❌ Player position '5' not found for scrolling")
+                return False
+                
+            x, y = self.player_positions['5']
             pyautogui.moveTo(x, y)
             time.sleep(1.5)
             
-            # Drag to scroll
-            pyautogui.dragTo(247, 480, 2, button='left')
+            # Drag to scroll (scaled target position)
+            target_x = int(247 * (self.player_positions['5'][0] / 250))  # Scale based on current position
+            target_y = int(480 * (self.player_positions['5'][1] / 1002))  # Scale based on current position
+            pyautogui.dragTo(target_x, target_y, 2, button='left')
             time.sleep(1.5)
             
             return True

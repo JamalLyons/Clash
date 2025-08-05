@@ -11,6 +11,7 @@ from typing import Dict, Any
 
 from GuiController import GuiController
 from ClashController import ClashController
+from ScreenController import ScreenController
 
 
 class ClashInviter:
@@ -19,7 +20,7 @@ class ClashInviter:
     def __init__(self):
         """Initialize the application with environment validation and configuration"""
         self.config = self._load_config()
-        self.gui = GuiController(self.config['screen_positions'])
+        self.gui = GuiController(self.config['screen_positions'], self.config['player_positions'])
         self.clash_api = ClashController(self.config['api_token'])
         self.stats = {
             'invited': 0,
@@ -38,28 +39,10 @@ class ClashInviter:
             print("Or create a .env file with: CLASH_API_TOKEN=your_token_here")
             sys.exit(1)
         
-        # Screen positions configuration
-        screen_positions = {
-            'game_area': (1373, 35),
-            'my_clan': (809, 66),
-            'find_new_members': (516, 733),
-            'filter_wars': (396, 298),
-            'filter_league': (802, 296),
-            'filter_trophy': (1249, 301),
-            'search_suggested': (1548, 426),
-            'player_area': (253, 501),
-            'player_code': (757, 286),
-            'copy': (946, 300),
-        }
-        
-        # Player position configuration
-        player_positions = {
-            '1': (252, 525),
-            '2': (251, 637),
-            '3': (253, 768),
-            '4': (249, 897),
-            '5': (250, 1002),
-        }
+        # Load screen configuration
+        screen_controller = ScreenController()
+        screen_positions = screen_controller.get_screen_positions()
+        player_positions = screen_controller.get_player_positions()
         
         return {
             'api_token': api_token,

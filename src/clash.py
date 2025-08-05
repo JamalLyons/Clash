@@ -22,7 +22,15 @@ from pynput.keyboard import Key, Controller
 # ----------------------------------------------------------------------
 
 pyautogui.FAILSAFE = True
-TOKEN = 'your_clash_api_key'
+
+# Get API token from environment variable for security
+TOKEN = os.getenv('CLASH_API_TOKEN')
+if not TOKEN:
+    print("❌ ERROR: CLASH_API_TOKEN environment variable not set!")
+    print("Please set your API token as an environment variable:")
+    print("export CLASH_API_TOKEN='your_token_here'")
+    print("Or create a .env file with: CLASH_API_TOKEN=your_token_here")
+    sys.exit(1)
 
 # ----------------------------------------------------------------------
 #   							 Main
@@ -64,69 +72,83 @@ class Members():
 		self.start()	
 
 	def start(self):
-		self.count = input('Number of players to invite: ')
-		time.sleep(5)
-		for _ in range(100):
-			for i in range(3):
-				if i == 0:
-					self.begin('war')
-				if i == 1:
-					self.begin('league')
-				if i == 2:
-					self.begin('trophy')
+		try:
+			self.count = input('Number of players to invite: ')
+			if not self.count.isdigit() or int(self.count) <= 0:
+				print("❌ Please enter a valid positive number!")
+				return
+			time.sleep(5)
+			for _ in range(100):
+				for i in range(3):
+					if i == 0:
+						self.begin('war')
+					if i == 1:
+						self.begin('league')
+					if i == 2:
+						self.begin('trophy')
+		except KeyboardInterrupt:
+			print("\n⚠️  Script interrupted by user")
+			sys.exit(0)
+		except Exception as e:
+			print(f"❌ Error in start(): {e}")
+			sys.exit(1)
 
 	def begin(self, search):
-		# Navigate to member area
-		time.sleep(1)
-		pyautogui.click(self.positions['game_area'])
-		time.sleep(1)
-
-		self.keyboard.press('g')
-		self.keyboard.release('g')
-		time.sleep(1)
-
-		pyautogui.click(self.positions['my_clan'])
-		time.sleep(1)
-
-		pyautogui.click(self.positions['find_new_members'])
-		time.sleep(1)		
-
-		# Select filter
-		if search == "war":
+		try:
+			# Navigate to member area
 			time.sleep(1)
-			pyautogui.click(self.positions['filter_wars'])
+			pyautogui.click(self.positions['game_area'])
 			time.sleep(1)
 
-		if search == "league":
-			time.sleep(1)
-			pyautogui.click(self.positions['filter_league'])
+			self.keyboard.press('g')
+			self.keyboard.release('g')
 			time.sleep(1)
 
-		if search == "trophy":
+			pyautogui.click(self.positions['my_clan'])
 			time.sleep(1)
-			pyautogui.click(self.positions['filter_trophy'])
+
+			pyautogui.click(self.positions['find_new_members'])
 			time.sleep(1)		
 
-		# Search
-		pyautogui.click(self.positions['search_suggested'])
-		time.sleep(1)
+			# Select filter
+			if search == "war":
+				time.sleep(1)
+				pyautogui.click(self.positions['filter_wars'])
+				time.sleep(1)
 
-		# Invite players
-		self.invitations()
+			if search == "league":
+				time.sleep(1)
+				pyautogui.click(self.positions['filter_league'])
+				time.sleep(1)
+
+			if search == "trophy":
+				time.sleep(1)
+				pyautogui.click(self.positions['filter_trophy'])
+				time.sleep(1)		
+
+			# Search
+			pyautogui.click(self.positions['search_suggested'])
+			time.sleep(1)
+
+			# Invite players
+			self.invitations()
+		except Exception as e:
+			print(f"❌ Error in begin({search}): {e}")
 		
 	def invite(self):
 		try:
 			x, y = pyautogui.locateCenterOnScreen('invite.png', confidence=.8)
 			pyautogui.click(x, y)
 		except Exception as e:
+			print(f"⚠️  Could not find invite button: {e}")
 			return
 
 		self.added += 1
-		print("[invited] " + str(self.added))
+		print(f"✅ [invited] {self.added}/{self.count}")
 		if (int(self.added) >= int(self.count)):
-			print("[FINISHED]")
+			print("🎉 [FINISHED] All players invited!")
 			self.leave()
-			sys.exit() # finished adding all players	
+			sys.exit(0) # finished adding all players	
 
 	def invitations(self):
 		# send invite to player_positions
@@ -134,28 +156,37 @@ class Members():
 		
 		for _ in range(12): # page drag down amount
 			for i in range(1, amount):
-				time.sleep(1.5)
-				
-				# click profile
-				pyautogui.click(self.player_positions[str(i)]) 
-				time.sleep(2)
-
-				# send player invite
-				if self.filter() == True:
-					self.invite()
-					time.sleep(1.5)
-
 				try:
-					x, y = pyautogui.locateCenterOnScreen('back.png', confidence=.8)
-					pyautogui.click(x, y)
+					time.sleep(1.5)
+					
+					# click profile
+					pyautogui.click(self.player_positions[str(i)]) 
+					time.sleep(2)
+
+					# send player invite
+					if self.filter() == True:
+						self.invite()
+						time.sleep(1.5)
+
+					try:
+						x, y = pyautogui.locateCenterOnScreen('back.png', confidence=.8)
+						pyautogui.click(x, y)
+					except Exception as e:
+						print(f"⚠️  Could not find back button: {e}")
+						return
+
 				except Exception as e:
-					return
+					print(f"❌ Error processing player {i}: {e}")
+					continue
 
 			# drag to next section, restart function: run in loop 10 times
-			pyautogui.moveTo(self.player_positions['5'])
-			time.sleep(1.5)
-			pyautogui.dragTo(247, 480, 2, button='left')
-			time.sleep(1.5)
+			try:
+				pyautogui.moveTo(self.player_positions['5'])
+				time.sleep(1.5)
+				pyautogui.dragTo(247, 480, 2, button='left')
+				time.sleep(1.5)
+			except Exception as e:
+				print(f"⚠️  Error scrolling: {e}")
 
 	def finished(self):
 		# Added all players from selected filter
@@ -173,7 +204,7 @@ class Members():
 			x, y = pyautogui.locateCenterOnScreen('exit.png', confidence=.8)
 			pyautogui.click(x, y)
 		except Exception as e:
-			print('failed to exit')		
+			print('❌ Failed to exit: Could not find exit button')		
 
 	# ------------------------------------------------------------------
 	#						Player Filtering
@@ -181,10 +212,10 @@ class Members():
 
 	def filter(self):
 		# filter driver function
-		self.get_info()
-		
-		# passes all filters
 		try:
+			self.get_info()
+			
+			# passes all filters
 			f_clan = self.clan()
 			f_level = self.level()
 
@@ -192,6 +223,7 @@ class Members():
 				return False
 
 		except Exception as e:
+			print(f"❌ Error in filter(): {e}")
 			return False
 
 		self.invited.append(str(self.player.get('name')))
@@ -199,44 +231,68 @@ class Members():
 
 	def get_info(self):
 		# copy player id
-		time.sleep(1)
-		pyautogui.click(self.positions['player_code'])
-		time.sleep(0.7)
-		pyautogui.click(self.positions['copy'])
+		try:
+			time.sleep(1)
+			pyautogui.click(self.positions['player_code'])
+			time.sleep(0.7)
+			pyautogui.click(self.positions['copy'])
 
-		# get player information
-		player_id = str(pc.paste())
-		search = f'https://api.clashofclans.com/v1/players/%23{player_id[1:]}'.format()
-		self.player = requests.get(search, headers = self.header).json()
+			# get player information
+			player_id = str(pc.paste())
+			if not player_id or len(player_id) < 2:
+				raise Exception("Invalid player ID")
+				
+			search = f'https://api.clashofclans.com/v1/players/%23{player_id[1:]}'
+			response = requests.get(search, headers=self.header, timeout=10)
+			
+			if response.status_code != 200:
+				raise Exception(f"API request failed: {response.status_code}")
+				
+			self.player = response.json()
+			
+		except Exception as e:
+			print(f"❌ Error getting player info: {e}")
+			raise e
 
 	def clan(self):
 		# Do they pass clan filtering
 		try:
 			c = self.player.get('clan')
-			name = c['name']
-			if len(name) > 1:
-				return False
+			if c:
+				name = c['name']
+				if len(name) > 1:
+					return False
 		except Exception as e:
+			print(f"⚠️  Error in clan filter: {e}")
 			return True
 		return True
 
 	def level(self):
 		# Check their level & townhall
-		th = self.player.get('townHallLevel')
-		lvl = self.player.get('expLevel')
+		try:
+			th = self.player.get('townHallLevel')
+			lvl = self.player.get('expLevel')
 
-		if th == 8 and lvl >= 65:
-			return True
-		elif th == 9 and lvl >= 75:
-			return True
-		elif th == 10 and lvl >= 85:
-			return True
-		elif th == 11 and lvl >= 100:
-			return True
-		elif th > 11 and lvl >= 120:
-			return True
-				
-		return False
+			if th == 8 and lvl >= 65:
+				return True
+			elif th == 9 and lvl >= 75:
+				return True
+			elif th == 10 and lvl >= 85:
+				return True
+			elif th == 11 and lvl >= 100:
+				return True
+			elif th > 11 and lvl >= 120:
+				return True
+					
+			return False
+		except Exception as e:
+			print(f"❌ Error in level filter: {e}")
+			return False
 
 
-clash = Members()
+if __name__ == "__main__":
+	try:
+		clash = Members()
+	except Exception as e:
+		print(f"❌ Fatal error: {e}")
+		sys.exit(1)

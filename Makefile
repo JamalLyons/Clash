@@ -68,23 +68,23 @@ setup: venv install
 	@echo "Project setup complete!"
 	@echo "To run the project: make run"
 
-# Run the main clash.py script
+# Run the main script
 run:
 	@echo "Running Clash project..."
 	@if [ ! -d "$(VENV_NAME)" ]; then \
 		echo "Virtual environment not found. Please run 'make setup' first."; \
 		exit 1; \
 	fi
-	@source $(VENV_NAME)/bin/activate && python src/clash.py
+	@source $(VENV_NAME)/bin/activate && python src/Main.py
 
-# Run the tester script
+# Run the test script
 test:
-	@echo "Running tester script..."
+	@echo "Running test script..."
 	@if [ ! -d "$(VENV_NAME)" ]; then \
 		echo "Virtual environment not found. Please run 'make setup' first."; \
 		exit 1; \
 	fi
-	@source $(VENV_NAME)/bin/activate && python src/tester.py
+	@source $(VENV_NAME)/bin/activate && python src/test.py
 
 # Clean up virtual environment and cache files
 clean:

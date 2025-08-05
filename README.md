@@ -107,12 +107,46 @@ make dev               # Development mode with auto-restart
 ./activate.sh          # Activate environment and start interactive shell
 ```
 
-## How It Works
+## Architecture
 
-1. **Screen Automation**: Uses `pyautogui` to click buttons and navigate the Clash of Clans interface
-2. **API Integration**: Fetches player data from the official Clash of Clans API
-3. **Smart Filtering**: Evaluates players based on your criteria before sending invitations
-4. **Automated Inviting**: Sends invitations to qualified players automatically
+The project has been refactored into a clean, modular architecture:
+
+### 📁 File Structure
+```
+src/
+├── Main.py              # Main entry point and orchestration
+├── GuiController.py     # Handles all GUI automation (pyautogui)
+├── ClashController.py   # Handles all API requests to Clash of Clans
+└── test_refactored.py   # Test script for the new architecture
+```
+
+### 🔧 Components
+
+1. **Main.py** - Orchestrates the entire process:
+   - Loads environment and configuration
+   - Coordinates between GUI and API controllers
+   - Manages the main execution loop
+   - Handles user input and statistics
+
+2. **GuiController.py** - Screen automation API:
+   - All pyautogui operations
+   - Screen position management
+   - Image recognition and clicking
+   - Navigation between game screens
+
+3. **ClashController.py** - API integration:
+   - HTTP requests to Clash of Clans API
+   - Player data fetching and validation
+   - Rate limiting and error handling
+   - Comprehensive API wrapper
+
+### 🚀 How It Works
+
+1. **Configuration Loading**: Main.py loads environment variables and screen positions
+2. **Screen Automation**: GuiController handles all mouse/keyboard interactions
+3. **API Integration**: ClashController fetches player data from official API
+4. **Smart Filtering**: Main.py evaluates players against criteria
+5. **Automated Inviting**: Coordinated invitation process with error handling
 
 ## Troubleshooting
 
